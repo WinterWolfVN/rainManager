@@ -18,26 +18,27 @@ val gitHasLocalCommits = gitCurrentBranch?.let { providers.execIgnoreCode("git",
 val gitHasHasLocalChanges = providers.execIgnoreCode("git", "status", "-s").isNotEmpty()
 
 android {
-    namespace = "dev.wintry.manager"
+    namespace = "dev.raincord.manager"
     compileSdk = 36
 
     defaultConfig {
         minSdk = 28
         targetSdk = 36
-        versionCode = 10_00_01
-        versionName = "1.0.1"
+        versionCode = 1000
+        versionName = "v1.0.0"
 
         vectorDrawables {
             useSupportLibrary = true
         }
 
-        buildConfigField("String", "APPLICATION_NAME", "\"Wintry Manager\"")
-        buildConfigField("String", "TAG", "\"WintryManager\"")
+        buildConfigField("String", "APPLICATION_NAME", "\"RainManager\"")
+        buildConfigField("String", "TAG", "\"RainManager\"")
 
-        buildConfigField("String", "GITHUB_ORG", "\"wtcord\"")
-        buildConfigField("String", "SUPPORT_SERVER", "\"ybPB5tgD\"")
+        buildConfigField("String", "CODEBERG_ORG", "\"raincord\"")
+        buildConfigField("String", "GITHUB_ORG", "\"ra1ncord\"")
+        buildConfigField("String", "SUPPORT_SERVER", "\"6cN7wKa8gp\"")
 
-        buildConfigField("String", "BACKEND_URL", "\"https://aliucord.com/\"")
+        buildConfigField("String", "BACKEND_URL", "\"https://raincord.dev/\"")
 
         buildConfigField("Boolean", "RELEASE", isRelease.toString())
         buildConfigField("String", "GIT_BRANCH", "\"$gitCurrentBranch\"")

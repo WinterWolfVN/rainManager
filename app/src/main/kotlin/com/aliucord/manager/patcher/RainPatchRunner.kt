@@ -7,7 +7,7 @@ import com.aliucord.manager.patcher.steps.prepare.*
 import com.aliucord.manager.ui.screens.patchopts.PatchOptions
 import kotlinx.collections.immutable.persistentListOf
 
-class WintryPatchRunner(options: PatchOptions) : StepRunner() {
+class RainPatchRunner(options: PatchOptions) : StepRunner() {
     override val steps = persistentListOf(
         FetchDiscordRNAStep(options),
         DowngradeCheckStep(options),
@@ -17,16 +17,16 @@ class WintryPatchRunner(options: PatchOptions) : StepRunner() {
         DownloadDiscordRNALangStep(),
         DownloadDiscordRNAResourcesStep(),
         DownloadDiscordRNALibStep(),
-        DownloadWintryXposedStep(),
+        DownloadRainXposedStep(),
         CopyDependenciesStep(),
 
         PatchIconsStep(options),
-        PatchWintryManifestStep(options),
+        PatchRainManifestStep(options),
         SaveMetadataStep(options),
 
         AlignmentStep(),
         SigningStep(),
-        InjectWintryXposedStep(),
+        InjectRainXposedStep(),
 
         InstallStep(options),
         CleanupStep(),

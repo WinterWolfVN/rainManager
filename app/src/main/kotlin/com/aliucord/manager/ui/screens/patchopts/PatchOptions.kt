@@ -10,13 +10,6 @@ import kotlinx.parcelize.TypeParceler
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-enum class VersionPreference {
-    Stable,
-    Beta,
-    Alpha,
-    Custom;
-}
-
 @Immutable
 @Parcelize
 @Serializable
@@ -42,14 +35,10 @@ data class PatchOptions(
     val iconReplacement: IconReplacement,
 
     /**
-     * Version preference to fetch and install
-     */
-    val versionPreference: VersionPreference,
-
-    /**
-     * Version to fetch and install when versionPreference is set to VersionPreference.Custom.
+     * Version to fetch and install if no remote version is found.
      */
     val customVersionCode: String,
+    val isDevMode: Boolean,
 ) : Parcelable {
     @Immutable
     @Parcelize
@@ -109,9 +98,9 @@ data class PatchOptions(
             val AliucordColor = Color(0xFF00C853)
 
             /**
-             * The default Wintry background color.
+             * The default Rain background color.
              */
-            val WintryColor = Color(0xFF133E87)
+            val RainColor = Color(0xFF2E2E2E)
 
             /**
              * The new Discord blurple used in icons.
@@ -127,12 +116,12 @@ data class PatchOptions(
 
     companion object {
         val Default = PatchOptions(
-            appName = "Wintry",
-            packageName = "dev.wintry.app",
+            appName = "Rain",
+            packageName = "dev.raincord.app",
             debuggable = false,
-            iconReplacement = IconReplacement.CustomColor(IconReplacement.WintryColor),
-            versionPreference = VersionPreference.Stable,
+            iconReplacement = IconReplacement.CustomColor(IconReplacement.RainColor),
             customVersionCode = "",
+            isDevMode = false,
         )
     }
 }

@@ -13,8 +13,8 @@ import android.widget.Toast
 import androidx.annotation.AnyRes
 import androidx.annotation.StringRes
 import com.google.android.gms.safetynet.SafetyNet
-import dev.wintry.manager.BuildConfig
-import dev.wintry.manager.R
+import dev.raincord.manager.BuildConfig
+import dev.raincord.manager.R
 import java.io.File
 import java.io.InputStream
 import kotlin.coroutines.resume

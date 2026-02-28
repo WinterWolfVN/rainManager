@@ -49,13 +49,7 @@ class PatchOptionsModel(
         debuggable = value
     }
 
-    // ---------- Version preference state ----------
-    var versionPreference by mutableStateOf(prefilledOptions.versionPreference)
-        private set
 
-    fun changeVersionPreference(value: VersionPreference) {
-        versionPreference = value
-    }
 
     // ---------- Custom version code state ----------
     var customVersionCode by mutableStateOf(prefilledOptions.customVersionCode)
@@ -97,8 +91,9 @@ class PatchOptionsModel(
             packageName = packageName,
             debuggable = debuggable,
             iconReplacement = icon,
-            versionPreference = versionPreference,
+
             customVersionCode = customVersionCode,
+            isDevMode = isDevMode,
         )
     }
 

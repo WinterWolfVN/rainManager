@@ -8,7 +8,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import dev.wintry.manager.R
+import dev.raincord.manager.R
 
 @Composable
 fun UninstallPluginDialog(

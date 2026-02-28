@@ -32,7 +32,7 @@ import com.aliucord.manager.ui.screens.patchopts.components.PatchOptionsAppBar
 import com.aliucord.manager.ui.screens.patchopts.components.options.*
 import com.aliucord.manager.ui.util.*
 import com.aliucord.manager.util.*
-import dev.wintry.manager.R
+import dev.raincord.manager.R
 import kotlinx.coroutines.delay
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
@@ -85,7 +85,7 @@ class PatchOptionsScreen(
             selectedColor = when (iconModel.mode) {
                 IconOptionsMode.Original -> PatchOptions.IconReplacement.BlurpleColor
                 IconOptionsMode.OldDiscord -> PatchOptions.IconReplacement.OldBlurpleColor
-                IconOptionsMode.Wintry -> PatchOptions.IconReplacement.WintryColor
+                IconOptionsMode.Rain -> PatchOptions.IconReplacement.RainColor
                 IconOptionsMode.Aliucord -> PatchOptions.IconReplacement.AliucordColor
                 IconOptionsMode.CustomColor -> iconModel.selectedColor.toColor()
                 IconOptionsMode.CustomImage -> null
@@ -102,8 +102,7 @@ class PatchOptionsScreen(
             packageNameState = model.packageNameState,
             setPackageName = model::changePackageName,
 
-            versionPreference = model.versionPreference,
-            setVersionPreference = model::changeVersionPreference,
+
 
             customVersionCode = model.customVersionCode,
             customVersionCodeIsError = model.customVersionCodeIsError,
@@ -145,8 +144,7 @@ fun PatchOptionsScreenContent(
     packageNameState: PackageNameState,
     setPackageName: (String) -> Unit,
 
-    versionPreference: VersionPreference,
-    setVersionPreference: (VersionPreference) -> Unit,
+
 
     customVersionCode: String,
     customVersionCodeIsError: Boolean,
@@ -251,19 +249,8 @@ fun PatchOptionsScreenContent(
                 )
             }
 
-            SelectPatchOption(
-                icon = painterResource(R.drawable.ic_code),
-                name = stringResource(R.string.patchopts_verchannel_title),
-                description = stringResource(R.string.patchopts_verchannel_desc),
-                options = VersionPreference.entries.map { it.name },
-                selectedOption = versionPreference.name,
-                onOptionSelected = { selected ->
-                    setVersionPreference(VersionPreference.valueOf(selected))
-                }
-            )
-
             AnimatedVisibility(
-                visible = versionPreference == VersionPreference.Custom,
+                visible = isDevMode, 
                 label = "Custom version code option visibility"
             ) {
                 TextPatchOption(

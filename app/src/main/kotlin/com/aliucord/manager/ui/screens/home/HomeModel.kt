@@ -24,20 +24,22 @@ import com.aliucord.manager.ui.util.DiscordVersion
 import com.aliucord.manager.ui.util.toUnsafeImmutable
 import com.aliucord.manager.util.*
 import com.github.diamondminer88.zip.ZipReader
-import dev.wintry.manager.BuildConfig
-import dev.wintry.manager.R
+import dev.raincord.manager.BuildConfig
+import dev.raincord.manager.R
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
+import org.json.JSONArray
+import org.json.JSONObject
 
 class HomeModel(
     private val application: Application,
     private val github: AliucordGithubService,
     private val maven: AliucordMavenService,
-    private val wtGithub: WintryGithubService,
+    private val rainCodeberg: RainCodebergService,
     private val rnaTracker: RNATrackerService,
     private val json: Json,
 ) : ScreenModel {
@@ -47,7 +49,7 @@ class HomeModel(
     private val refreshingLock = Mutex()
     private var remoteDataJson: BuildInfo? = null
     private var trackerIndexJson: RNATrackerIndex? = null
-    private var latestWintryXposedVersion: SemVer? = null
+    private var latestRainXposedVersion: SemVer? = null
     private var latestAliuhookVersion: SemVer? = null
 
     init {
@@ -109,7 +111,7 @@ class HomeModel(
         val metadata = try {
             val applicationInfo = application.packageManager.getApplicationInfo(packageName, 0)
             val metadataFile = ZipReader(applicationInfo.publicSourceDir)
-                .use { it.openEntry("wintry.json")?.read() }
+                .use { it.openEntry("rain.json")?.read() }
 
             @OptIn(ExperimentalSerializationApi::class)
             metadataFile?.let { json.decodeFromStream<InstallMetadata>(it.inputStream()) }
@@ -190,7 +192,7 @@ class HomeModel(
 
     private suspend fun fetchRemoteData() {
         listOf(
-            // // These aren't needed by Wintry
+            // // These aren't needed by Rain
             // screenModelScope.launch(Dispatchers.IO) {
             //     github.getBuildData().fold(
             //         success = { remoteDataJson = it },
@@ -210,15 +212,20 @@ class HomeModel(
                 )
             },
             screenModelScope.launch(Dispatchers.IO) {
-                wtGithub.getLatestXposedRelease().fold(
-                    success = { latestWintryXposedVersion = SemVer.parse(it.name) },
-                    fail = { Log.w(BuildConfig.TAG, "Failed to fetch latest WintryXposed version", it) },
+                rainCodeberg.getLatestXposedRelease().fold(
+                    success = { latestRainXposedVersion = SemVer.parse(it.name) },
+                    fail = { Log.w(BuildConfig.TAG, "Failed to fetch latest RainXposed version", it) },
                 )
             },
 
         ).joinAll()
 
-        if (trackerIndexJson == null /* remoteDataJson == null || latestAliuhookVersion == null */ || latestWintryXposedVersion == null) {
+        if (trackerIndexJson == null) {
+            Log.w(BuildConfig.TAG, "RNATracker index is null after fetching remote data.")
+            mainThread { application.showToast(R.string.home_network_fail) }
+        }
+        if (latestRainXposedVersion == null) {
+            Log.w(BuildConfig.TAG, "Latest RainXposed version is null after fetching remote data.")
             mainThread { application.showToast(R.string.home_network_fail) }
         }
     }
@@ -230,8 +237,8 @@ class HomeModel(
         return application.packageManager
             .getInstalledPackages(PackageManager.GET_META_DATA)
             .filter {
-                // Wintry doesn't have "legacy installer" whatsoever
-                return@filter it.applicationInfo?.metaData?.containsKey("isWintry") == true
+                // Rain doesn't have "legacy installer" whatsoever
+                return@filter it.applicationInfo?.metaData?.containsKey("isRain") == true
 
                 // // Packages installed via the legacy Installer do not have the metadata marker
                 // val isAliucordPkg = it.packageName == "com.aliucord"
@@ -241,23 +248,21 @@ class HomeModel(
     }
 
     /**
-     * Checks whether the current Wintry installation is up-to-date.
+     * Checks whether the current Rain installation is up-to-date.
      *
      * Currently mirrors the behavior of Bunny Manager by directly comparing against
-     * the latest available Discord and WintryXposed release. This is a temporary approach and will remain
-     * in place until Wintry adds support for version pinning.
+     * the latest available Discord and RainXposed release. This is a temporary approach and will remain
+     * in place until Rain adds support for version pinning.
      */
-    private fun isInstallationUpToDate(pkg: PackageInfo): Boolean? {
-        val trackerData = trackerIndexJson ?: return null
+    private suspend fun isInstallationUpToDate(pkg: PackageInfo): Boolean? {
+        val trackerData = trackerIndexJson ?: return null // Latest stable/beta/alpha from RNA tracker
 
-        // `longVersionCode` is unnecessary since Discord doesn't use `versionCodeMajor`
         @Suppress("DEPRECATION")
-        val versionCode = pkg.versionCode
+        val installedDiscordVersionCode = pkg.versionCode
 
-        // Try to parse install metadata. If none present, install was made via legacy installer.
         val apkPath = pkg.applicationInfo?.publicSourceDir ?: return false
         val installMetadata = try {
-            val metadataFile = ZipReader(apkPath).use { it.openEntry("wintry.json")?.read() }
+            val metadataFile = ZipReader(apkPath).use { it.openEntry("rain.json")?.read() }
                 ?: return false
 
             @OptIn(ExperimentalSerializationApi::class)
@@ -267,13 +272,40 @@ class HomeModel(
             return false
         }
 
-        val latestByPref = when (installMetadata.options.versionPreference) {
-            VersionPreference.Stable -> trackerData.latest.stable
-            VersionPreference.Beta -> trackerData.latest.beta
-            VersionPreference.Alpha -> trackerData.latest.alpha
-            VersionPreference.Custom -> return true
+        var expectedDiscordVersionCode: Int? = null
+
+        // 1. Try ControlRepo
+        var controlRepoDiscordVersion: Int? = null
+        rainCodeberg.getControlRepo().fold(
+            success = {
+                controlRepoDiscordVersion = it.firstOrNull()?.discord
+            },
+            fail = {
+                Log.w(BuildConfig.TAG, "Failed to fetch ControlRepo version for isInstallationUpToDate", it)
+            }
+        )
+
+        if (controlRepoDiscordVersion != null) {
+            expectedDiscordVersionCode = controlRepoDiscordVersion
+        } else {
+            // 2. If ControlRepo failed, check for Dev Override (from installed metadata)
+            if (installMetadata.options.isDevMode && installMetadata.options.customVersionCode.isNotBlank()) {
+                expectedDiscordVersionCode = installMetadata.options.customVersionCode.toIntOrNull()
+            } else {
+                // 3. If ControlRepo and Dev Override failed, fallback to RNATracker Stable
+                expectedDiscordVersionCode = trackerData.latest.stable
+            }
         }
 
-        return latestByPref == versionCode && installMetadata.wintryXposedVersion == latestWintryXposedVersion
+        // If for some reason we couldn't determine an expected version, consider it not up-to-date
+        if (expectedDiscordVersionCode == null) return false
+
+        // Compare installed Discord version with the determined expected version
+        val isDiscordUpToDate = installedDiscordVersionCode == expectedDiscordVersionCode
+
+        // Compare RainXposed version
+        val isRainXposedUpToDate = installMetadata.rainXposedVersion == latestRainXposedVersion
+
+        return isDiscordUpToDate && isRainXposedUpToDate
     }
 }

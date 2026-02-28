@@ -12,8 +12,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.wintry.manager.BuildConfig
-import dev.wintry.manager.R
+import dev.raincord.manager.BuildConfig
+import dev.raincord.manager.R
 
 @Composable
 fun ProjectHeader(
@@ -28,7 +28,7 @@ fun ProjectHeader(
         modifier = modifier,
     ) {
         Image(
-            painter = painterResource(if (aliucord) R.drawable.ic_aliucord_logo else R.drawable.ic_rounded_wintry),
+            painter = painterResource(if (aliucord) R.drawable.ic_aliucord_logo else R.drawable.ic_rounded_rain),
             contentDescription = null,
             modifier = Modifier
                 .padding(bottom = 6.dp)
@@ -36,7 +36,7 @@ fun ProjectHeader(
         )
 
         Text(
-            text = stringResource(if (aliucord) R.string.aliucord else R.string.wintry),
+            text = stringResource(if (aliucord) R.string.aliucord else R.string.rain),
             style = MaterialTheme.typography.titleMedium.copy(fontSize = 26.sp)
         )
 
@@ -51,6 +51,15 @@ fun ProjectHeader(
         Row(
             horizontalArrangement = Arrangement.Center,
         ) {
+            TextButton(onClick = { uriHandler.openUri("https://codeberg.org/${if (aliucord) "Aliucord" else BuildConfig.CODEBERG_ORG}") }) {
+                Icon(
+                    painter = painterResource(R.drawable.codeberg_logo_icon_white),
+                    contentDescription = null,
+                    modifier = Modifier.padding(end = ButtonDefaults.IconSpacing),
+                )
+                Text(text = stringResource(R.string.codeberg))
+            }
+
             TextButton(onClick = { uriHandler.openUri("https://github.com/${if (aliucord) "Aliucord" else BuildConfig.GITHUB_ORG}") }) {
                 Icon(
                     painter = painterResource(R.drawable.ic_account_github_white_24dp),

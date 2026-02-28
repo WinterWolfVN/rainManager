@@ -16,8 +16,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
-import dev.wintry.manager.BuildConfig
-import dev.wintry.manager.R
+import dev.raincord.manager.BuildConfig
+import dev.raincord.manager.R
 
 @Composable
 fun UnknownSourcesPermissionDialog() {

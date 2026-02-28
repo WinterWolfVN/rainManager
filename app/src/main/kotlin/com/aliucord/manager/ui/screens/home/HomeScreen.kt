@@ -34,7 +34,7 @@ import com.aliucord.manager.ui.screens.plugins.PluginsScreen
 import com.aliucord.manager.ui.util.paddings.PaddingValuesSides
 import com.aliucord.manager.ui.util.paddings.exclude
 import com.aliucord.manager.util.*
-import dev.wintry.manager.R
+import dev.raincord.manager.R
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 
@@ -196,7 +196,7 @@ fun HomeScreenNoneContent(
                 .padding(bottom = 80.dp)
         ) {
             Text(
-                text = """ /ᐠﹷ ‸ ﹷ ᐟ\ﾉ""",
+                text = """\O_O/""",
                 style = MaterialTheme.typography.labelLarge
                     .copy(fontSize = 38.sp),
             )

@@ -20,5 +20,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "AliucordManager"
+rootProject.name = "RainManager"
 include(":app")
