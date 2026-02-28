@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
 import com.aliucord.manager.ui.components.*
+import com.aliucord.manager.ui.screens.about.components.RainContributor
 import com.aliucord.manager.ui.screens.about.components.LeadContributor
 import com.aliucord.manager.ui.util.paddings.*
 import dev.raincord.manager.R
@@ -88,7 +89,24 @@ fun AboutScreenContent(state: State<AboutScreenState>) {
             }
 
             item(key = "PROJECT_HEADER") {
-                ProjectHeader(aliucord = true)
+                ProjectHeader(aliucord = false)
+            }
+
+            item(key = "RAIN_HEADER_DIVIDER") {
+                TextDivider(
+                    text = stringResource(R.string.contributors_rain),
+                    modifier = Modifier.padding(top = 18.dp, bottom = 20.dp),
+                )
+            }
+
+            item(key = "RAIN_CONTRIBUTORS") {
+                Row(
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    RainContributor("cocobo1", "coco", "c0c0b01")
+                }
             }
 
             item(key = "HEADER_DIVIDER") {
