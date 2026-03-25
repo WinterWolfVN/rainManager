@@ -114,9 +114,6 @@ android {
             excludes += "/org/bouncycastle/**"
         }
         jniLibs {
-            // x86 is dead
-            excludes += "/lib/x86/*.so"
-
             // Equivalent of AndroidManifest's extractNativeLibs=false
             useLegacyPackaging = false
         }

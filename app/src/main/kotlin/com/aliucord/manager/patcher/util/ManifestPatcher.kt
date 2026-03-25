@@ -59,6 +59,7 @@ object ManifestPatcher {
                     }
                 ) {
                     private var shouldAddExternalStoragePerm = false
+                    private val shouldAddUsesForDeclaredPermissions = mutableListOf<String>()
 
                     override fun child(ns: String?, name: String): NodeVisitor {
                         val nv = super.child(ns, name)
@@ -69,6 +70,20 @@ object ManifestPatcher {
                                 .child(null, "uses-permission")
                                 .attr(ANDROID_NAMESPACE, "name", android.R.attr.name, TYPE_STRING, Manifest.permission.MANAGE_EXTERNAL_STORAGE)
                             shouldAddExternalStoragePerm = false
+                        }
+
+                        if (shouldAddUsesForDeclaredPermissions.isNotEmpty()) {
+                            for (perm in shouldAddUsesForDeclaredPermissions) {
+                                super.child(null, "uses-permission")
+                                    .attr(
+                                        ANDROID_NAMESPACE,
+                                        "name",
+                                        android.R.attr.name,
+                                        TYPE_STRING,
+                                        perm
+                                    )
+                            }
+                            shouldAddUsesForDeclaredPermissions.clear()
                         }
 
                         return when (name) {
@@ -99,19 +114,46 @@ object ManifestPatcher {
                                 }
                             } else nv
 
-                            "permission" -> if (modifyPermissions != false && packageName != null) {
-                                object : NodeVisitor(nv) {
-                                    override fun attr(ns: String?, name: String, resourceId: Int, type: Int, value: Any?) {
-                                        super.attr(
-                                            ns, name, resourceId, type,
-                                            when (name) {
-                                                "name" -> (value as String).replace("com.discord", packageName)
+                            // taken from shiggycord <3
+                            "permission" ->
+                                if (modifyPermissions != false &&
+                                    packageName != null
+                                ) {
+                                    object : NodeVisitor(nv) {
+                                        override fun attr(
+                                            ns: String?,
+                                            name: String,
+                                            resourceId: Int,
+                                            type: Int,
+                                            value: Any?
+                                        ) {
+                                            val newVal = when (name) {
+                                                "name" ->
+                                                    (value as String)
+                                                        .replace(
+                                                            "com.discord",
+                                                            packageName
+                                                        )
+
                                                 else -> value
                                             }
-                                        )
+
+                                            super.attr(
+                                                ns,
+                                                name,
+                                                resourceId,
+                                                type,
+                                                newVal
+                                            )
+
+                                            if (name == "name" && newVal is String) {
+                                                if (newVal.endsWith("_PERMISSION") || newVal.contains("DYNAMIC_RECEIVER")) {
+                                                    shouldAddUsesForDeclaredPermissions.add(newVal)
+                                                }
+                                            }
+                                        }
                                     }
-                                }
-                            } else nv
+                                } else nv
 
                             "application" -> object : ReplaceAttrsVisitor(
                                 nv,
@@ -131,7 +173,6 @@ object ManifestPatcher {
                                 private var shouldAddMetadata = addManagerMetadata ?: false
 
                                 override fun attr(ns: String?, name: String, resourceId: Int, type: Int, value: Any?) {
-                                    if (name == NETWORK_SECURITY_CONFIG) return
                                     if (name == REQUEST_LEGACY_EXTERNAL_STORAGE) shouldAddLegacyStorage = false
                                     if (name == USE_EMBEDDED_DEX) shouldAddUseEmbeddedDex = false
                                     if (name == EXTRACT_NATIVE_LIBS) shouldAddExtractNativeLibs = false
