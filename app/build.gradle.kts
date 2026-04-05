@@ -193,7 +193,6 @@ dependencies {
     implementation(libs.compose.shimmer)
     implementation(libs.zip)
 
-    coreLibraryDesugaring(libs.desugaring)
 }
 
 configurations.all {
