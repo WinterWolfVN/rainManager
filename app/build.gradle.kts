@@ -22,7 +22,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        minSdk = 28
+        minSdk = 24
         targetSdk = 36
         versionCode = 1010
         versionName = "v1.0.1"
@@ -170,7 +170,7 @@ dependencies {
     implementation(libs.bundles.ktor)
     implementation(libs.bundles.voyager)
 
-    implementation(files("libs/lspatch.aar"))
+    implementation(files("libs/npatch.aar"))
 
     implementation(libs.compose.ui.tooling.preview)
     debugImplementation(libs.compose.ui.tooling)
