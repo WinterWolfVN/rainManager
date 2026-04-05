@@ -90,7 +90,7 @@ zip = { module = "io.github.diamondminer88:zip-android", version.ref = "zip" }
 
 # Other
 microg = { module = "org.microg.gms:play-services-safetynet", version.ref = "microg" }
-desugaring = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugaring" }
+desugar-jdk-libs = { group = "com.android.tools", name = "desugar_jdk_libs_nio", version = "2.1.5" }
 
 [bundles]
 accompanist = [
