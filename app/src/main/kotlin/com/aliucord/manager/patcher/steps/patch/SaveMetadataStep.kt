@@ -13,13 +13,7 @@ import dev.raincord.manager.R
 import kotlinx.serialization.json.Json
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.lsposed.lspatch.share.LSPConfig
 
-/**
- * Store the install options and additional data inside the APK for future use,
- * for example checking what library versions were used, or performing "updates" while
- * maintaining the same install options as what was used upon first install.
- */
 class SaveMetadataStep(private val options: PatchOptions) : Step(), KoinComponent {
     private val json: Json by inject()
 
@@ -40,12 +34,12 @@ class SaveMetadataStep(private val options: PatchOptions) : Step(), KoinComponen
             aliuhookVersion = aliuhook?.targetVersion,
             injectorVersion = injector?.targetVersion,
             patchesVersion = patches?.targetVersion,
-            lspatchVersion = LSPConfig.instance.VERSION_CODE,
+            lspatchVersion = 0.8.0,
             rainXposedVersion = rainXposed?.targetVersion,
         )
 
         container.log("Writing serialized install metadata to APK")
-        ZipWriter(apk, /* append = */ true).use {
+        ZipWriter(apk, true).use {
             it.writeEntry("rain.json", json.encodeToString<InstallMetadata>(metadata))
         }
     }
