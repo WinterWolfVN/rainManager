@@ -48,28 +48,39 @@ class PatchIconsStep(private val options: PatchOptions) : Step(), KoinComponent 
     private val isMonochromeIconsAvailable = Build.VERSION.SDK_INT >= 31
 
     override suspend fun execute(container: StepRunner) {
-        container.log("isAdaptiveIconsAvailable: $isAdaptiveIconsAvailable, isMonochromeIconsAvailable: $isMonochromeIconsAvailable")
+        try {
+            if (Build.VERSION.SDK_INT < 26) {
+                container.log("Android 7 detected. Skipping icon patching to prevent crashes.")
+                state = StepState.Skipped
+                return
+            }
 
-        if (!isMonochromeIconsAvailable && options.iconReplacement is IconReplacement.Original) {
-            container.log("No patching necessary, skipping step")
-            state = StepState.Skipped
-            return
-        }
+            container.log("isAdaptiveIconsAvailable: $isAdaptiveIconsAvailable, isMonochromeIconsAvailable: $isMonochromeIconsAvailable")
 
-        container.log("Parsing resources.arsc")
-        val apk = container.getStep<CopyDependenciesStep>().patchedApk
-        
-        val arsc = try {
-            ArscUtil.readArsc(apk)
-        } catch (e: Exception) {
-            container.log("ARSC parsing failed, falling back to raw path injection")
-            null
-        }
+            if (!isMonochromeIconsAvailable && options.iconReplacement is IconReplacement.Original) {
+                container.log("No patching necessary, skipping step")
+                state = StepState.Skipped
+                return
+            }
 
-        if (isAdaptiveIconsAvailable && arsc != null) {
-            patchAdaptiveIcons(container, apk, arsc)
-        } else {
-            patchRawIcons(container, apk, arsc)
+            container.log("Parsing resources.arsc")
+            val apk = container.getStep<CopyDependenciesStep>().patchedApk
+            
+            val arsc = try {
+                ArscUtil.readArsc(apk)
+            } catch (e: Exception) {
+                container.log("ARSC parsing failed, falling back to raw path injection")
+                null
+            }
+
+            if (isAdaptiveIconsAvailable && arsc != null) {
+                patchAdaptiveIcons(container, apk, arsc)
+            } else {
+                patchRawIcons(container, apk, arsc)
+            }
+        } catch (e: Throwable) {
+            container.log("CRITICAL ERROR in PatchIconsStep: ${e.message}")
+            container.log("Skipping icon patch to ensure RainXposed installation succeeds!")
         }
     }
 
@@ -248,11 +259,18 @@ class PatchIconsStep(private val options: PatchOptions) : Step(), KoinComponent 
         }
 
         container.log("Writing patched icons back to apk")
-        ZipWriter(apk, true).use {
-            it.deleteEntries(allIconFiles)
+        ZipWriter(apk, true).use { zip ->
+            allIconFiles.forEach { path ->
+                try {
+                    zip.deleteEntry(path)
+                } catch (e: Exception) {}
+            }
 
-            for (path in allIconFiles)
-                it.writeEntry(path, iconBytes)
+            allIconFiles.forEach { path ->
+                try {
+                    zip.writeEntry(path, iconBytes)
+                } catch (e: Exception) {}
+            }
         }
     }
 
