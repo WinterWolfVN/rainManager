@@ -34,7 +34,7 @@ class SaveMetadataStep(private val options: PatchOptions) : Step(), KoinComponen
             aliuhookVersion = aliuhook?.targetVersion,
             injectorVersion = injector?.targetVersion,
             patchesVersion = patches?.targetVersion,
-            lspatchVersion = 0.8.0,
+            lspatchVersion = 538,
             rainXposedVersion = rainXposed?.targetVersion,
         )
 
